@@ -126,10 +126,9 @@ class PBECorrelation(GGAFunctional):
         # Gradient magnitude
         grad_norm = torch.norm(grad_rho, dim=1, keepdim=True)
 
-        # t parameter: t = |∇ρ|/(2*sqrt(4π)*sqrt(rs)*ρ)
-        t = grad_norm / (
-            2.0 * torch.sqrt(torch.tensor(4.0*torch.pi)) * torch.sqrt(rs) * rho
-        )
+    # t parameter: t = |∇ρ|/(2*sqrt(4π)*sqrt(rs)*ρ)
+    denom = 2.0 * torch.sqrt(torch.tensor(4.0 * torch.pi))
+    t = grad_norm / (denom * torch.sqrt(rs) * rho)
 
         # A parameter (avoid division by zero)
         exp_term = torch.exp(-torch.abs(ec_lda) / self.gamma)

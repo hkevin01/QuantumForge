@@ -22,8 +22,8 @@ class SCANExchange(MetaGGAFunctional):
 
     Reference:
     Sun, J., Ruzsinszky, A., & Perdew, J. P. (2015).
-    Strongly constrained and appropriately normed semilocal density functional.
-    Physical review letters, 115(3), 036402.
+    Strongly constrained and appropriately normed semilocal density
+    functional. Physical review letters, 115(3), 036402.
     """
 
     def __init__(self):
@@ -111,7 +111,7 @@ class SCANCorrelation(MetaGGAFunctional):
                 "density"
             )
 
-        # Wigner-Seitz radius
+        # Wigner-Seitz radius (kept here for clarity of derivation steps)
         rs = (3.0 / (4.0 * torch.pi * rho)) ** (1.0 / 3.0)
 
         # VWN correlation parameters (simplified)

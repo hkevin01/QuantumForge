@@ -18,13 +18,15 @@ class TestLDAFunctional(LDAFunctional):
 
     def forward(self, rho, **_kwargs):
         """Simple test implementation - LDA exchange."""
-        return -0.75 * (3.0 / torch.pi) ** (1.0/3.0) * rho ** (4.0/3.0)
+        return (
+            -0.75 * (3.0 / torch.pi) ** (1.0/3.0) * rho ** (4.0/3.0)
+        )
 
 
 class TestGGAFunctional(GGAFunctional):
     """Concrete GGA functional for testing."""
 
-    def forward(self, rho, grad_rho=None, **kwargs):
+    def forward(self, rho, grad_rho=None, **_kwargs):
         """Simple test implementation - PBE-like."""
         # LDA part
         ex_lda = -0.75 * (3.0 / torch.pi) ** (1.0/3.0) * rho ** (4.0/3.0)
