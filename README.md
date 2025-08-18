@@ -231,10 +231,8 @@ If you use QuantumForge in your research, please cite:
 
 ## 🆘 Support
 
-- 📖 [Documentation](https://quantumforge.readthedocs.io)
-- 💬 [GitHub Discussions](https://github.com/your-username/QuantumForge/discussions)
-- 🐛 [Issue Tracker](https://github.com/your-username/QuantumForge/issues)
-- 📧 Email: support@quantumforge.org
+-  [GitHub Discussions](https://github.com/hkevin01/QuantumForge/discussions)
+- 🐛 [Issue Tracker](https://github.com/hkevin01/QuantumForge/issues)
 
 ---
 

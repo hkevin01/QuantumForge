@@ -7,9 +7,8 @@ calculations on real-space grids.
 """
 
 import abc
-from typing import Optional, Tuple, Union, List, Dict, Any
+from typing import Optional, Tuple, Union
 
-import numpy as np
 import torch
 
 
@@ -24,7 +23,7 @@ class GridBase(abc.ABC):
         dtype: Optional[torch.dtype] = None,
     ):
         """Initialize the grid base class.
-        
+
         Args:
             spacing: Grid spacing in atomic units (single value or per-axis)
             origin: Grid origin coordinates (default: center at zero)
@@ -33,15 +32,17 @@ class GridBase(abc.ABC):
         """
         self.device = device or torch.device("cpu")
         self.dtype = dtype or torch.float64
-        
+
         # Handle spacing specification
         if isinstance(spacing, (int, float)):
-            self.spacing = (float(spacing), float(spacing), float(spacing))
+            self.spacing: Tuple[float, float, float] = (
+                float(spacing), float(spacing), float(spacing)
+            )
         else:
-            self.spacing = tuple(float(s) for s in spacing)
-            
+            self.spacing = (float(spacing[0]), float(spacing[1]), float(spacing[2]))
+
         self.origin = origin or (0.0, 0.0, 0.0)
-        
+
         # Grid properties (to be set by subclasses)
         self.shape: Optional[Tuple[int, int, int]] = None
         self.coordinates: Optional[torch.Tensor] = None
@@ -74,10 +75,10 @@ class GridBase(abc.ABC):
 
     def integrate(self, values: torch.Tensor) -> torch.Tensor:
         """Integrate values over the grid using quadrature weights.
-        
+
         Args:
             values: Function values at grid points [..., N]
-            
+
         Returns:
             Integrated value(s)
         """
@@ -95,11 +96,11 @@ class GridBase(abc.ABC):
         method: str = "finite_difference"
     ) -> torch.Tensor:
         """Compute gradient of values on the grid.
-        
+
         Args:
             values: Function values at grid points [..., N]
             method: Gradient computation method
-            
+
         Returns:
             Gradient as [..., 3, N] tensor
         """
@@ -119,11 +120,11 @@ class GridBase(abc.ABC):
         method: str = "finite_difference"
     ) -> torch.Tensor:
         """Compute Laplacian of values on the grid.
-        
+
         Args:
             values: Function values at grid points [..., N]
             method: Laplacian computation method
-            
+
         Returns:
             Laplacian as [..., N] tensor
         """
@@ -149,17 +150,19 @@ class UniformGrid(GridBase):
         **kwargs
     ):
         """Initialize uniform Cartesian grid.
-        
+
         Args:
             shape: Number of grid points in each dimension
             spacing: Grid spacing in atomic units
             origin: Grid origin coordinates
         """
         super().__init__(spacing, origin, **kwargs)
-        self.shape = tuple(int(s) for s in shape)
+        self.shape: Tuple[int, int, int] = (
+            int(shape[0]), int(shape[1]), int(shape[2])
+        )
         self.build_grid()
 
-    def build_grid(self) -> None:
+    def build_grid(self, **kwargs) -> None:
         """Build uniform grid coordinates and weights."""
         # Create 1D coordinate arrays for each dimension
         x = torch.linspace(
@@ -215,7 +218,9 @@ class UniformGrid(GridBase):
             self.build_grid()
         return self.weights
 
-    def _finite_difference_gradient(self, values: torch.Tensor) -> torch.Tensor:
+    def _finite_difference_gradient(
+        self, values: torch.Tensor
+    ) -> torch.Tensor:
         """Compute finite difference gradient using central differences."""
         # Reshape values to grid shape
         grid_values = values.view(-1, *self.shape)
@@ -261,7 +266,9 @@ class UniformGrid(GridBase):
         gradient = torch.stack([grad_x, grad_y, grad_z], dim=-2)
         return gradient.view(*values.shape[:-1], 3, -1)
 
-    def _finite_difference_laplacian(self, values: torch.Tensor) -> torch.Tensor:
+    def _finite_difference_laplacian(
+        self, values: torch.Tensor
+    ) -> torch.Tensor:
         """Compute finite difference Laplacian using second-order stencil."""
         # Reshape values to grid shape
         grid_values = values.view(-1, *self.shape)
@@ -309,7 +316,7 @@ class AdaptiveGrid(GridBase):
         **kwargs
     ):
         """Initialize adaptive grid around atomic centers.
-        
+
         Args:
             atomic_positions: Atomic coordinates as [N_atoms, 3] tensor
             atomic_numbers: Atomic numbers as [N_atoms] tensor
@@ -328,12 +335,13 @@ class AdaptiveGrid(GridBase):
         self.refinement_radius = refinement_radius
         self.refinement_factor = refinement_factor
 
-    def build_grid(self, target_points: Optional[int] = None) -> None:
+    def build_grid(self, **kwargs) -> None:
         """Build adaptive grid with refinement around atomic centers.
-        
+
         Args:
-            target_points: Target number of grid points (optional)
+            **kwargs: Additional arguments including target_points
         """
+        target_points = kwargs.get('target_points', None)
         # For now, implement a simplified uniform grid
         # Full adaptive implementation would require more complex algorithms
         if target_points is None:
@@ -347,7 +355,8 @@ class AdaptiveGrid(GridBase):
             nx = ny = nz = n_per_dim
 
         # Create uniform base grid for now
-        # TODO: Implement true adaptive refinement
+        # Note: Full adaptive implementation requires more complex algorithms
+        # Currently using uniform grid as a starting point
         self.shape = (nx, ny, nz)
         self.spacing = (
             self.box_size[0] / nx,
@@ -379,7 +388,9 @@ class AdaptiveGrid(GridBase):
             self.build_grid()
         return self.weights
 
-    def _finite_difference_gradient(self, values: torch.Tensor) -> torch.Tensor:
+    def _finite_difference_gradient(
+        self, values: torch.Tensor
+    ) -> torch.Tensor:
         """Compute gradient (placeholder implementation)."""
         # For adaptive grids, this requires more sophisticated algorithms
         # For now, raise an error indicating this needs implementation
@@ -387,7 +398,9 @@ class AdaptiveGrid(GridBase):
             "Gradient computation for adaptive grids not yet implemented"
         )
 
-    def _finite_difference_laplacian(self, values: torch.Tensor) -> torch.Tensor:
+    def _finite_difference_laplacian(
+        self, values: torch.Tensor
+    ) -> torch.Tensor:
         """Compute Laplacian (placeholder implementation)."""
         # For adaptive grids, this requires more sophisticated algorithms
         # For now, raise an error indicating this needs implementation

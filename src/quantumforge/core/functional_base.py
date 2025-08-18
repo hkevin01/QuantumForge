@@ -7,6 +7,7 @@ density functionals in QuantumForge.
 
 import abc
 from typing import Dict, Optional
+
 import torch
 import torch.nn as nn
 
@@ -66,7 +67,7 @@ class FunctionalBase(nn.Module, abc.ABC):
                 - 'dedtau': Derivative w.r.t. tau (for meta-GGA)
         """
         raise NotImplementedError
-    
+
     def compute_energy(
         self,
         rho: torch.Tensor,
@@ -77,24 +78,24 @@ class FunctionalBase(nn.Module, abc.ABC):
     ) -> torch.Tensor:
         """
         Compute total exchange-correlation energy.
-        
+
         Args:
             rho: Electron density
             weights: Quadrature weights for integration
             grad_rho: Density gradient (optional)
             tau: Kinetic energy density (optional)
             **kwargs: Additional parameters
-            
+
         Returns:
             Total exchange-correlation energy
         """
         result = self.forward(rho, grad_rho, tau, **kwargs)
         eps_xc = result['eps_xc']
-        
+
         # Integrate: E_xc = ∫ ρ(r) ε_xc(r) dr
         energy = torch.sum(rho * eps_xc * weights, dim=(-3, -2, -1))
         return energy
-    
+
     def check_inputs(
         self,
         rho: torch.Tensor,
