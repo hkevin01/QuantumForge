@@ -121,8 +121,10 @@ celerybeat.pid
 
 # Environments
 .env
-# Removing venv/ to prevent exclusion of Docker virtual environment
+.venv/
+venv/
 ENV/
+env/
 env.bak/
 venv.bak/
 
