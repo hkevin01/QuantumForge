@@ -12,8 +12,9 @@ run_tests() {
 
     docker-compose exec $container bash -c "
         cd /workspace &&
-        echo '📦 Installing test dependencies...' &&
-        pip install -e '.[dev]' &&
+    echo '📦 Installing test dependencies...' &&
+    pip install -r requirements-dev.txt &&
+    pip install -e '.' &&
         echo '🔍 Running linting checks...' &&
         flake8 src/ tests/ --max-line-length=88 --extend-ignore=E203,W503 &&
         echo '🎯 Running type checks...' &&

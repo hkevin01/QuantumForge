@@ -463,4 +463,3 @@ __all__ = [
     "CP2KAdapter",
     "create_backend_adapter",
 ]
-]

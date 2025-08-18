@@ -46,7 +46,8 @@ python -m quantumforge.cli.run_scf --molecule "H 0 0 0; H 0 0 0.74" --basis def2
 
 ```bash
 # Install dependencies
-pip install -e ".[dev]"
+pip install -r requirements-dev.txt
+pip install -e "."
 
 # Run tests to verify installation
 pytest tests/ -v
@@ -178,7 +179,8 @@ Available services:
 
 ```bash
 # Install development dependencies
-pip install -e ".[dev]"
+pip install -r requirements-dev.txt
+pip install -e "."
 
 # Run tests
 pytest tests/ -v --cov=src/quantumforge

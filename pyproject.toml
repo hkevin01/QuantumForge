@@ -85,7 +85,8 @@ dev = [
     "pre-commit>=3.3.0",
     "jupyter>=1.0.0",
     "jupyterlab>=4.0.0",
-    "ipython>=8.14.0",
+    # Constrain ipython for Python 3.8 compatibility (matches requirements-dev.txt)
+    "ipython>=7.34.0,<8.13.0",
     "ipywidgets>=8.0.0",
     "pybind11>=2.11.0",
     "cmake>=3.21.0",
@@ -130,6 +131,7 @@ quantumforge = [
     "data/*.json",
     "data/*.yaml",
     "cuda/ops/*.cu",
+    "cuda/ops/*.cpp",
     "cuda/ops/*.cuh",
     "gui/templates/*.html",
     "gui/static/*.css",

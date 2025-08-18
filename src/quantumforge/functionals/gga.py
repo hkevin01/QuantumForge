@@ -243,7 +243,8 @@ class LYPCorrelation(GGAFunctional):
 
 class BLYP(GGAFunctional):
     """
-    BLYP (Becke-Lee-Yang-Parr) functional combining Becke88 exchange and LYP correlation.
+    BLYP (Becke-Lee-Yang-Parr) functional combining Becke88 exchange and
+    LYP correlation.
 
     This functional combines:
     - Becke88 exchange functional
@@ -259,8 +260,13 @@ class BLYP(GGAFunctional):
         self.exchange = BLYPExchange()
         self.correlation = LYPCorrelation()
 
-    def forward(self, rho: torch.Tensor, grad_rho: Optional[torch.Tensor] = None,
-                tau: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(
+        self,
+        rho: torch.Tensor,
+        grad_rho: Optional[torch.Tensor] = None,
+        tau: Optional[torch.Tensor] = None,
+        **kwargs
+    ) -> torch.Tensor:
         """
         Compute BLYP energy density.
 

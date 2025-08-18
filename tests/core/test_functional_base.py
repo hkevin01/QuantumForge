@@ -16,7 +16,7 @@ from quantumforge.core.functional_base import (
 class TestLDAFunctional(LDAFunctional):
     """Concrete LDA functional for testing."""
 
-    def forward(self, rho, **kwargs):
+    def forward(self, rho, **_kwargs):
         """Simple test implementation - LDA exchange."""
         return -0.75 * (3.0 / torch.pi) ** (1.0/3.0) * rho ** (4.0/3.0)
 
@@ -34,7 +34,9 @@ class TestGGAFunctional(GGAFunctional):
 
         # Simple gradient correction
         grad_norm = torch.norm(grad_rho, dim=1, keepdim=True)
-        s = grad_norm / (2.0 * (3.0 * torch.pi**2) ** (1.0/3.0) * rho ** (4.0/3.0))
+        s = grad_norm / (
+            2.0 * (3.0 * torch.pi**2) ** (1.0/3.0) * rho ** (4.0/3.0)
+        )
 
         # Simple enhancement factor
         enhancement = 1.0 + 0.1 * s**2
@@ -45,7 +47,7 @@ class TestGGAFunctional(GGAFunctional):
 class TestMetaGGAFunctional(MetaGGAFunctional):
     """Concrete meta-GGA functional for testing."""
 
-    def forward(self, rho, grad_rho=None, tau=None, **kwargs):
+    def forward(self, rho, grad_rho=None, tau=None, **_kwargs):
         """Simple test implementation - SCAN-like."""
         # Start with GGA-like part
         ex_lda = -0.75 * (3.0 / torch.pi) ** (1.0/3.0) * rho ** (4.0/3.0)
@@ -57,13 +59,20 @@ class TestMetaGGAFunctional(MetaGGAFunctional):
 
         if grad_rho is not None:
             grad_norm = torch.norm(grad_rho, dim=1, keepdim=True)
-            s = grad_norm / (2.0 * (3.0 * torch.pi**2) ** (1.0/3.0) * rho ** (4.0/3.0))
+            s = grad_norm / (
+                2.0 * (3.0 * torch.pi**2) ** (1.0/3.0) * rho ** (4.0/3.0)
+            )
             enhancement *= (1.0 + 0.1 * s**2)
 
         if tau is not None:
             # Simple tau-dependent correction
-            tau_unif = 0.3 * (3.0 * torch.pi**2) ** (2.0/3.0) * rho ** (5.0/3.0)
-            alpha = (tau - 0.125 * torch.norm(grad_rho, dim=1, keepdim=True)**2 / rho) / tau_unif
+            tau_unif = (
+                0.3 * (3.0 * torch.pi**2) ** (2.0/3.0) * rho ** (5.0/3.0)
+            )
+            alpha = (
+                tau
+                - 0.125 * torch.norm(grad_rho, dim=1, keepdim=True) ** 2 / rho
+            ) / tau_unif
             enhancement *= (1.0 + 0.05 * alpha)
 
         return ex_lda * enhancement
@@ -72,11 +81,11 @@ class TestMetaGGAFunctional(MetaGGAFunctional):
 class TestHybridFunctional(HybridFunctional):
     """Concrete hybrid functional for testing."""
 
-    def forward(self, rho, **kwargs):
+    def forward(self, rho, **_kwargs):
         """Simple test implementation."""
         return -0.75 * (3.0 / torch.pi) ** (1.0/3.0) * rho ** (4.0/3.0)
 
-    def compute_exact_exchange(self, density_matrix, **kwargs):
+    def compute_exact_exchange(self, density_matrix, **_kwargs):
         """Placeholder exact exchange implementation."""
         return torch.sum(density_matrix**2) * 0.25  # Simplified
 
@@ -174,7 +183,9 @@ def test_input_validation():
     rho = torch.rand(2, 1, 10, 10, 10)
     grad_rho_wrong = torch.rand(2, 2, 10, 10, 10)  # Should have 3 components
 
-    with pytest.raises(ValueError, match="Expected grad_rho to have 3 components"):
+    with pytest.raises(
+        ValueError, match="Expected grad_rho to have 3 components"
+    ):
         gga(rho, grad_rho=grad_rho_wrong)
 
     # Test LDA with gradient (should raise error)

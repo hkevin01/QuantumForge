@@ -73,8 +73,8 @@ RUN pip install pyscf h5py
 # Copy source code
 COPY . /workspace/
 
-# Install QuantumForge in development mode
-RUN pip install -e ".[dev]"
+# Install QuantumForge in development mode (avoid extras to keep py38-compatible deps)
+RUN pip install -e "."
 
 # Set up development environment
 RUN echo 'export PYTHONPATH="/workspace/src:$PYTHONPATH"' >> /root/.bashrc
