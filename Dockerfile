@@ -61,7 +61,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python development dependencies
-COPY requirements-dev.txt /tmp/
+COPY requirements.txt requirements-dev.txt /tmp/
 RUN pip install -r /tmp/requirements-dev.txt
 
 # Install PyTorch with CUDA support
