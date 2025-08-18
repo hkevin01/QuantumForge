@@ -1,0 +1,215 @@
+version: '3.8'
+
+services:
+  # Main development environment with CUDA support
+  quantumforge-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: quantumforge-dev
+    volumes:
+      - .:/workspace
+      - quantumforge-cache:/root/.cache
+      - quantumforge-venv:/opt/venv
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+      - PYTHONPATH=/workspace/src
+      - JUPYTER_ENABLE_LAB=yes
+    ports:
+      - "8888:8888"  # Jupyter
+      - "8501:8501"  # Streamlit
+      - "8000:8000"  # Development server
+      - "3000:3000"  # Frontend dev server
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - quantumforge-network
+
+  # CPU-only development for CI/testing
+  quantumforge-cpu:
+    build:
+      context: .
+      dockerfile: Dockerfile.cpu
+      target: development
+    container_name: quantumforge-cpu
+    volumes:
+      - .:/workspace
+      - quantumforge-cache-cpu:/root/.cache
+    environment:
+      - PYTHONPATH=/workspace/src
+    ports:
+      - "8889:8888"  # Jupyter (different port)
+      - "8502:8501"  # Streamlit (different port)
+    stdin_open: true
+    tty: true
+    networks:
+      - quantumforge-network
+
+  # Database for storing computational results
+  postgres:
+    image: postgres:15
+    container_name: quantumforge-db
+    environment:
+      - POSTGRES_DB=quantumforge
+      - POSTGRES_USER=quantumforge
+      - POSTGRES_PASSWORD=quantumforge123
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - quantumforge-network
+
+  # Redis for caching and job queues
+  redis:
+    image: redis:7-alpine
+    container_name: quantumforge-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - quantumforge-network
+
+  # MinIO for object storage (S3-compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: quantumforge-minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=quantumforge
+      - MINIO_ROOT_PASSWORD=quantumforge123
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Console
+    networks:
+      - quantumforge-network
+
+  # Documentation server
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: docs
+    container_name: quantumforge-docs
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./docs:/workspace/docs
+    networks:
+      - quantumforge-network
+
+  # Code quality and security scanner
+  sonarqube:
+    image: sonarqube:community
+    container_name: quantumforge-sonar
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+    ports:
+      - "9002:9000"
+    networks:
+      - quantumforge-network
+
+  # MLflow for experiment tracking
+  mlflow:
+    image: python:3.10-slim
+    container_name: quantumforge-mlflow
+    command: >
+      bash -c "pip install mlflow psycopg2-binary boto3 &&
+               mlflow server
+               --backend-store-uri postgresql://quantumforge:quantumforge123@postgres:5432/quantumforge
+               --default-artifact-root s3://mlflow/artifacts
+               --host 0.0.0.0"
+    environment:
+      - AWS_ACCESS_KEY_ID=quantumforge
+      - AWS_SECRET_ACCESS_KEY=quantumforge123
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - minio
+    networks:
+      - quantumforge-network
+
+  # Jupyter Lab server
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: quantumforge-jupyter
+    command: >
+      bash -c "jupyter lab
+               --ip=0.0.0.0
+               --port=8888
+               --no-browser
+               --allow-root
+               --NotebookApp.token=''
+               --NotebookApp.password=''"
+    volumes:
+      - .:/workspace
+      - jupyter-data:/root/.jupyter
+    ports:
+      - "8890:8888"
+    environment:
+      - PYTHONPATH=/workspace/src
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - quantumforge-network
+
+  # Streamlit app
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: quantumforge-streamlit
+    command: streamlit run src/quantumforge/gui/app_streamlit.py --server.port=8501 --server.address=0.0.0.0
+    volumes:
+      - .:/workspace
+    ports:
+      - "8503:8501"
+    environment:
+      - PYTHONPATH=/workspace/src
+    networks:
+      - quantumforge-network
+
+volumes:
+  quantumforge-cache:
+  quantumforge-cache-cpu:
+  quantumforge-venv:
+  postgres-data:
+  redis-data:
+  minio-data:
+  sonarqube-data:
+  sonarqube-extensions:
+  sonarqube-logs:
+  jupyter-data:
+
+networks:
+  quantumforge-network:
+    driver: bridge

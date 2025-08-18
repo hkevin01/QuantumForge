@@ -1,0 +1,74 @@
+{
+  "version": "1.0.0",
+  "project": "QuantumForge",
+  "description": "GPU-accelerated DFT with deep learning density functionals",
+  "preferences": {
+    "codeStyle": {
+      "python": {
+        "formatter": "black",
+        "lineLength": 88,
+        "docstringStyle": "numpy",
+        "typeHints": true
+      },
+      "cpp": {
+        "formatter": "clang-format",
+        "standard": "c++17",
+        "style": "Google"
+      },
+      "cuda": {
+        "formatter": "clang-format",
+        "kernelNaming": "snake_case",
+        "blockSize": 256
+      }
+    },
+    "namingConventions": {
+      "python": {
+        "functions": "snake_case",
+        "classes": "PascalCase",
+        "constants": "UPPER_SNAKE_CASE",
+        "modules": "snake_case"
+      },
+      "cpp": {
+        "functions": "camelCase",
+        "classes": "PascalCase",
+        "variables": "camelCase",
+        "constants": "kConstantName"
+      },
+      "cuda": {
+        "kernels": "snake_case_kernel",
+        "deviceFunctions": "__device__ snake_case",
+        "hostFunctions": "camelCase"
+      }
+    },
+    "documentation": {
+      "includeTypeHints": true,
+      "includeExamples": true,
+      "includeComplexity": true,
+      "referencePapers": true
+    }
+  },
+  "context": {
+    "domain": "quantum_chemistry",
+    "technologies": [
+      "PyTorch",
+      "CUDA",
+      "PySCF",
+      "CMake",
+      "Docker",
+      "NumPy",
+      "HDF5"
+    ],
+    "patterns": {
+      "functionalBase": "src/quantumforge/ml/models/functional_base.py",
+      "cudaOps": "src/quantumforge/cuda/ops/",
+      "backends": "src/quantumforge/core/backends/",
+      "testing": "tests/"
+    }
+  },
+  "suggestions": {
+    "enableSmartCompletion": true,
+    "prioritizeProjectPatterns": true,
+    "includeDocumentationSuggestions": true,
+    "suggestOptimizations": true
+  }
+}
